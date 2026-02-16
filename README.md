@@ -49,7 +49,7 @@ go run main.go
 - Les favoris marchent pas encore très bien
 - Le CSS est un peu basique mais ça marche
 
-## Technologies utilisées
+## Langage utilisé
 
 - Go (langage backend)
 - HTML/CSS (frontend)
