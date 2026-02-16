@@ -3,7 +3,6 @@ package services
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,31 +12,29 @@ import (
 	"time"
 )
 
-// Constant pour l'API Spotify
+// Variables globales (c'est plus simple)
+var token string
+var tokenExpiration time.Time
+var client_http *http.Client
+
 const (
-	AuthURL             = "https://accounts.spotify.com/api/token"
-	BaseAPIURL          = "https://api.spotify.com/v1"
-	defaultClientID     = "b2758b6fc111451ea08499f71d2ec221"
-	defaultClientSecret = "1a6559f3d05c43359f63a4ede6cd1b8e"
+	AuthURL      = "https://accounts.spotify.com/api/token"
+	BaseAPIURL   = "https://api.spotify.com/v1"
+	ClientID     = "b2758b6fc111451ea08499f71d2ec221"
+	ClientSecret = "1a6559f3d05c43359f63a4ede6cd1b8e"
 )
 
-type SpotifyService struct {
-	Client      *http.Client
-	AccessToken string
-	ExpiresAt   time.Time
+// On initialise le client
+func InitService() {
+	client_http = &http.Client{Timeout: 10 * time.Second}
 }
 
-func NewSpotifyService() *SpotifyService {
-	return &SpotifyService{
-		Client: &http.Client{Timeout: 10 * time.Second},
-	}
-}
-
-// Authenticate récupère le token d'accès
-func (s *SpotifyService) Authenticate() error {
+// Fonction pour avoir le token
+func GetToken() error {
 	data := url.Values{}
 	data.Set("grant_type", "client_credentials")
 
+	// On prépare la requete
 	req, err := http.NewRequest("POST", AuthURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return err
@@ -45,135 +42,105 @@ func (s *SpotifyService) Authenticate() error {
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	auth := base64.StdEncoding.EncodeToString([]byte(defaultClientID + ":" + defaultClientSecret))
-	req.Header.Add("Authorization", "Basic "+auth)
+	// Encodage en base64 pour l'auth
+	authHeader := base64.StdEncoding.EncodeToString([]byte(ClientID + ":" + ClientSecret))
+	req.Header.Add("Authorization", "Basic "+authHeader)
 
-	resp, err := s.Client.Do(req)
+	resp, err := client_http.Do(req)
 	if err != nil {
+		fmt.Println("Erreur requete token:", err)
 		return err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		var errorResponse struct {
-			Error            string `json:"error"`
-			ErrorDescription string `json:"error_description"`
-		}
-		json.NewDecoder(resp.Body).Decode(&errorResponse)
-		log.Printf("Erreur Auth Spotify (%d): %s - %s\n", resp.StatusCode, errorResponse.Error, errorResponse.ErrorDescription)
-		return errors.New("échec de l'authentification spotify: " + errorResponse.ErrorDescription)
+	if resp.StatusCode != 200 {
+		fmt.Println("Erreur status code token:", resp.StatusCode)
+		return fmt.Errorf("Erreur token")
 	}
 
-	var tokenResp models.TokenResponse
-	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-		return err
-	}
+	var resultat models.TokenResponse
+	json.NewDecoder(resp.Body).Decode(&resultat)
 
-	s.AccessToken = tokenResp.AccessToken
-	s.ExpiresAt = time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second)
+	token = resultat.AccessToken
+	// On ajoute le temps d'expiration
+	tokenExpiration = time.Now().Add(time.Duration(resultat.ExpiresIn) * time.Second)
+
 	return nil
 }
 
-// CheckToken vérifie si le token est valide
-func (s *SpotifyService) CheckToken() error {
-	if s.AccessToken == "" {
-		// Pas de token, on authentifie
-		return s.Authenticate()
+// Verif si le token est bon
+func CheckTokenValid() {
+	if token == "" || time.Now().After(tokenExpiration) {
+		log.Println("Le token est vide ou expiré, on le refait")
+		GetToken()
 	}
-	if time.Now().After(s.ExpiresAt) {
-		// Token expiré, on recommence
-		return s.Authenticate()
-	}
-	// Tout est bon
-	return nil
 }
 
-// SearchArtists recherche des artistes
-func (s *SpotifyService) SearchArtists(query string, offset int) (*models.SearchResponse, error) {
-	if err := s.CheckToken(); err != nil {
-		return nil, err
-	}
+// Recherche des artistes
+func RechercheArtists(query string, offset int) (*models.SearchResponse, error) {
+	CheckTokenValid()
 
-	endpoint := fmt.Sprintf("%s/search?q=%s&type=artist&limit=20&offset=%d", BaseAPIURL, url.QueryEscape(query), offset)
-	req, err := http.NewRequest("GET", endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
+	// On construit l'url
+	url_search := fmt.Sprintf("%s/search?q=%s&type=artist&limit=20&offset=%d", BaseAPIURL, url.QueryEscape(query), offset)
 
-	req.Header.Add("Authorization", "Bearer "+s.AccessToken)
+	req, _ := http.NewRequest("GET", url_search, nil)
+	req.Header.Add("Authorization", "Bearer "+token)
 
-	resp, err := s.Client.Do(req)
+	resp, err := client_http.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("erreur api: %d", resp.StatusCode)
-	}
-
-	var searchResp models.SearchResponse
-	if err := json.NewDecoder(resp.Body).Decode(&searchResp); err != nil {
+	var result models.SearchResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		fmt.Println("Erreur décodage JSON search:", err)
 		return nil, err
 	}
 
-	return &searchResp, nil
+	return &result, nil
 }
 
-// GetArtist récupère les détails d'un artiste
-func (s *SpotifyService) GetArtist(id string) (*models.Artist, error) {
-	if err := s.CheckToken(); err != nil {
-		return nil, err
-	}
+// Récupérer un artiste par son ID
+func GetArtiste(id string) *models.Artist {
+	CheckTokenValid()
 
-	endpoint := fmt.Sprintf("%s/artists/%s", BaseAPIURL, id)
-	req, err := http.NewRequest("GET", endpoint, nil)
+	url_artiste := fmt.Sprintf("%s/artists/%s", BaseAPIURL, id)
+	req, _ := http.NewRequest("GET", url_artiste, nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := client_http.Do(req)
 	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Authorization", "Bearer "+s.AccessToken)
-
-	resp, err := s.Client.Do(req)
-	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil
 	}
 	defer resp.Body.Close()
 
-	var artist models.Artist
-	if err := json.NewDecoder(resp.Body).Decode(&artist); err != nil {
-		return nil, err
-	}
+	var artiste models.Artist
+	json.NewDecoder(resp.Body).Decode(&artiste)
 
-	return &artist, nil
+	return &artiste
 }
 
-// GetArtistAlbums récupère les albums d'un artiste
-func (s *SpotifyService) GetArtistAlbums(id string) ([]models.Album, error) {
-	if err := s.CheckToken(); err != nil {
-		return nil, err
-	}
+// Récupérer les albums
+func GetAlbumsArtiste(id string) []models.Album {
+	CheckTokenValid()
 
-	endpoint := fmt.Sprintf("%s/artists/%s/albums?limit=10", BaseAPIURL, id)
-	req, err := http.NewRequest("GET", endpoint, nil)
+	url_albums := fmt.Sprintf("%s/artists/%s/albums?limit=10", BaseAPIURL, id)
+	req, _ := http.NewRequest("GET", url_albums, nil)
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := client_http.Do(req)
 	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Authorization", "Bearer "+s.AccessToken)
-
-	resp, err := s.Client.Do(req)
-	if err != nil {
-		return nil, err
+		return nil
 	}
 	defer resp.Body.Close()
 
-	var albumResp struct {
+	// Structure temporaire juste pour ici
+	var reponse struct {
 		Items []models.Album `json:"items"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&albumResp); err != nil {
-		return nil, err
-	}
+	json.NewDecoder(resp.Body).Decode(&reponse)
 
-	return albumResp.Items, nil
+	return reponse.Items
 }
