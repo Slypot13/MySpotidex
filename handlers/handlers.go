@@ -48,9 +48,10 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	offsetStr := r.URL.Query().Get("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 
-	data := PageData{Title: "Recherche", Query: query, Offset: offset}
+	dataPage := PageData{Title: "Recherche", Query: query, Offset: offset}
 
 	if query != "" {
+		// On prépare la query
 		searchQuery := query
 		if genre != "" {
 			searchQuery += " genre:\"" + genre + "\""
@@ -59,21 +60,26 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 			searchQuery += " year:" + year
 		}
 
-		resp, err := spotifyService.SearchArtists(searchQuery, offset)
+		// result, _ := spotifyService.SearchArtists(query, offset)
+		// if result == nil {
+		// 	fmt.Println("Erreur")
+		// }
+
+		resultat_search, err := spotifyService.SearchArtists(searchQuery, offset)
 		if err != nil {
 			// Si ça plante, on affiche l'erreur dans la console
 			log.Println("Erreur recherche:", err)
-			// TODO: Faire une page d'erreur plus jolie un jour
+			// TODO: Faire une page d'erreur plus jolie
 			http.Error(w, "Erreur lors de la recherche", http.StatusInternalServerError)
 			if err.Error() == "EOF" {
 				log.Println("C'est bizarre, l'erreur est EOF")
 			}
 			return
 		}
-		data.Artists = resp.Artists.Items
+		dataPage.Artists = resultat_search.Artists.Items
 	}
 
-	renderTemplate(w, "search_results", data)
+	renderTemplate(w, "search_results", dataPage)
 }
 
 func ArtistHandler(w http.ResponseWriter, r *http.Request) {

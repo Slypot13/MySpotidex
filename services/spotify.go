@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// Constantes pour l'API Spotify
+// Constant pour l'API Spotify
 const (
 	AuthURL             = "https://accounts.spotify.com/api/token"
 	BaseAPIURL          = "https://api.spotify.com/v1"
@@ -74,7 +74,7 @@ func (s *SpotifyService) Authenticate() error {
 	return nil
 }
 
-// CheckToken vérifie si le token est valide, sinon le renouvelle
+// CheckToken vérifie si le token est valide
 func (s *SpotifyService) CheckToken() error {
 	if s.AccessToken == "" {
 		// Pas de token, on authentifie
