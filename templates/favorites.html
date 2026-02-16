@@ -1,0 +1,19 @@
+{{define "content"}}
+<h2>Mes Artistes Favoris</h2>
+
+<div class="artist-grid">
+    {{range .Favorites}}
+    <div class="artist-card">
+        {{if .Images}}
+        <img src="{{(index .Images 0).URL}}" alt="{{.Name}}">
+        {{else}}
+        <div class="placeholder-img">No Image</div>
+        {{end}}
+        <h3>{{.Name}}</h3>
+        <a href="/artist?id={{.ID}}" class="btn">Voir Détails</a>
+    </div>
+    {{else}}
+    <p>Vous n'avez pas encore de favoris.</p>
+    {{end}}
+</div>
+{{end}}

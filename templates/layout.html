@@ -1,0 +1,41 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - My SpotiDex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">My SpotiDex</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Accueil</a></li>
+                    <li><a href="/favorites">Favoris</a></li>
+                </ul>
+            </nav>
+            <form action="/search" method="GET" class="search-form">
+                <input type="text" name="q" placeholder="Rechercher un artiste..." required>
+                <button type="submit">🔍</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="container">
+        {{template "content" .}}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 My SpotiDex - Projet Groupie Tracker</p>
+        </div>
+    </footer>
+</body>
+
+</html>
+{{end}}

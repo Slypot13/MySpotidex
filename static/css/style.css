@@ -1,0 +1,117 @@
+/* Reset brutal */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: white;
+    color: black;
+    font-family: serif;
+    /* Police par défaut moche */
+    margin: 8px;
+    /* Marge par défaut du navigateur */
+}
+
+/* Plus de container centré */
+.container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #eee;
+    border-bottom: 2px solid black;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 2em;
+    margin: 0;
+}
+
+h1 a {
+    color: blue;
+    text-decoration: underline;
+}
+
+nav ul {
+    padding-left: 0;
+    margin-top: 10px;
+}
+
+nav li {
+    display: inline;
+    margin-right: 15px;
+}
+
+nav a {
+    color: blue;
+    font-size: 18px;
+}
+
+/* Formulaire basique */
+.search-form {
+    margin-top: 20px;
+    background-color: #ddd;
+    padding: 10px;
+}
+
+.search-form input {
+    border: 1px solid gray;
+}
+
+/* Grille cassée - juste des blocs inline */
+.artist-grid,
+.album-grid {
+    display: block;
+}
+
+.artist-card,
+.album-card {
+    display: inline-block;
+    vertical-align: top;
+    width: 150px;
+    margin: 5px;
+    border: 1px solid black;
+    padding: 5px;
+    background-color: #fff;
+    height: 250px;
+    /* Force une hauteur pour que ce soit moche si le texte dépasse */
+    overflow: hidden;
+}
+
+.artist-card img,
+.album-card img {
+    width: 100%;
+    height: auto;
+    border: 1px solid blue;
+}
+
+.artist-card h3 {
+    font-size: 14px;
+    margin: 5px 0;
+    text-decoration: underline;
+}
+
+.btn {
+    background-color: #ccc;
+    color: black;
+    border: 1px solid black;
+    padding: 2px 5px;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.artist-detail {
+    border: 5px solid red;
+    /* Bordure bien visible et laide */
+    padding: 10px;
+}
+
+.artist-info {
+    margin-bottom: 20px;
+    border-bottom: 1px dashed black;
+}

@@ -1,0 +1,47 @@
+{{define "content"}}
+<div class="artist-detail">
+    <div class="artist-header">
+        {{if .Artist.Images}}
+        <img src="{{(index .Artist.Images 0).URL}}" alt="{{.Artist.Name}}" class="artist-img">
+        {{end}}
+        <div class="artist-info">
+            <h2>{{.Artist.Name}}</h2>
+            <p><strong>Popularité:</strong> {{.Artist.Popularity}}/100</p>
+            <p><strong>Followers:</strong> {{.Artist.Followers.Total}}</p>
+            <p><strong>Genres:</strong> {{range .Artist.Genres}}{{.}}, {{end}}</p>
+            <button
+                onclick="addToFavorites('{{.Artist.ID}}', '{{.Artist.Name}}', '{{if .Artist.Images}}{{(index .Artist.Images 0).URL}}{{end}}')"
+                class="btn btn-fav">Ajouter aux favoris ❤️</button>
+        </div>
+    </div>
+
+    <h3>Albums</h3>
+    <div class="album-grid">
+        {{range .Albums}}
+        <div class="album-card">
+            {{if .Images}}
+            <img src="{{(index .Images 0).URL}}" alt="{{.Name}}">
+            {{end}}
+            <h4>{{.Name}}</h4>
+            <p>{{.ReleaseDate}} • {{.TotalTracks}} titres</p>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+<script>
+    function addToFavorites(id, name, img) {
+        fetch('/api/favorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, name: name, images: [{ url: img }] })
+        }).then(response => {
+            if (response.ok) {
+                alert('Ajouté aux favoris!');
+            } else {
+                alert('Erreur lors de l\'ajout.');
+            }
+        });
+    }
+</script>
+{{end}}

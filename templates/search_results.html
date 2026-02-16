@@ -1,0 +1,37 @@
+{{define "content"}}
+<h2>Résultats pour "{{.Query}}"</h2>
+
+<div class="filters">
+    <form action="/search" method="GET" class="filter-form">
+        <input type="hidden" name="q" value="{{.Query}}">
+        <label>Genre: <input type="text" name="genre" placeholder="ex: rock"></label>
+        <label>Année: <input type="text" name="year" placeholder="ex: 2020"></label>
+        <button type="submit" class="btn">Filtrer</button>
+    </form>
+</div>
+
+<div class="artist-grid">
+    {{range .Artists}}
+    <div class="artist-card">
+        {{if .Images}}
+        <img src="{{(index .Images 0).URL}}" alt="{{.Name}}">
+        {{else}}
+        <div class="placeholder-img">No Image</div>
+        {{end}}
+        <h3>{{.Name}}</h3>
+        <p>Genres: {{range .Genres}}{{.}}, {{end}}</p>
+        <a href="/artist?id={{.ID}}" class="btn">Voir Détails</a>
+    </div>
+    {{else}}
+    <p>Aucun artiste trouvé.</p>
+    {{end}}
+</div>
+
+<div class="pagination">
+    {{if gt .Offset 0}}
+    <a href="/search?q={{.Query}}&offset={{add .Offset -20}}" class="btn">Précédent</a>
+    {{end}}
+    <a href="/search?q={{.Query}}&offset={{add .Offset 20}}" class="btn">Suivant</a>
+</div>
+
+{{end}}

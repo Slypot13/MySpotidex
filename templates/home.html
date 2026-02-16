@@ -1,0 +1,37 @@
+{{define "content"}}
+<div class="hero">
+    <h2>Bienvenue sur votre Pokédex Musical</h2>
+    <p>Découvrez vos artistes préférés et constituez votre collection !</p>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <h3>Rechercher</h3>
+        <p>Trouvez n'importe quel artiste du catalogue Spotify.</p>
+    </div>
+    <div class="feature-card">
+        <h3>Explorer</h3>
+        <p>Consultez les détails, albums et infos de popularité.</p>
+    </div>
+    <div class="feature-card">
+        <h3>Collectionner</h3>
+        <p>Ajoutez vos artistes favoris à votre liste personnelle.</p>
+    </div>
+</div>
+
+<h2>Artistes Populaires du Moment</h2>
+<div class="artist-grid">
+    {{range .Artists}}
+    <div class="artist-card">
+        {{if .Images}}
+        <img src="{{(index .Images 0).URL}}" alt="{{.Name}}">
+        {{else}}
+        <div class="placeholder-img">No Image</div>
+        {{end}}
+        <h3>{{.Name}}</h3>
+        <p>Popularité: {{.Popularity}} 🔥</p>
+        <a href="/artist?id={{.ID}}" class="btn">Voir Détails</a>
+    </div>
+    {{end}}
+</div>
+{{end}}
