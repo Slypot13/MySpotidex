@@ -41,7 +41,7 @@ go run main.go
 - Recherche d'artistes
 - Affichage des détails (albums, popularité, followers)
 - Page de favoris (pas fini )
-- Filtres par genre et année
+- Filtres par genre et année ( pour ca il faut d'abord rechercher quelque chose pour etre sur la page de recherche et avoir la fonctionnalité)
 
 ## Problèmes connus
 
