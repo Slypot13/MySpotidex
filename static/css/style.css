@@ -17,7 +17,7 @@ header {
     color: white;
     padding: 25px 0;
     margin-bottom: 20px;
-    border-bottom: 3px solid #ffffff;
+    /* border-bottom: 3px solid #ffffff; */
 }
 
 header h1 {
@@ -193,7 +193,7 @@ footer {
     padding: 20px;
     margin-top: 40px;
     clear: both;
-    border-top: 3px solid #ffffff;
+    /* border-top: 3px solid #ffffff; */
 }
 
 .pagination {
